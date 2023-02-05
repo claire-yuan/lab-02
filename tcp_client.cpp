@@ -10,19 +10,23 @@
 #include <arpa/inet.h>
 #include <unistd.h>
 
+const int BUFFER_SIZE = 1024;
+
 int main(int argc, char const *argv[]) 
 { 
 	// check to see if user input is valid
-	char socket_read_buffer[1024];
+	char socket_read_buffer[BUFFER_SIZE];
 	
 	// TODO: Fill out the server ip and port
-	std::string server_ip = "";
-	std::string server_port = "";
+	std::string server_ip = "###.##.##.#";
+	std::string server_port = "8000";
 
 	int opt = 1;
 	int client_fd = -1;
 
 	// TODO: Create a TCP socket()
+	client_fd = socket(AF_INET, SOCK_STREAM, 0);
+	// std::cout << "client_fd: " << client_fd << std::endl;
 
 	// Enable reusing address and port
 	if (setsockopt(client_fd, SOL_SOCKET, SO_REUSEADDR | SO_REUSEPORT, &opt, sizeof(opt))) { 
@@ -44,10 +48,31 @@ int main(int argc, char const *argv[])
 	getaddrinfo(server_ip.c_str(), server_port.c_str(), &hints, &server_addr);
 
 	// TODO: Connect() to the server (hint: you'll need to use server_addr)
+	// Size = sizeof(*(server_addr->ai_addr)) = server_addr->ai_addrlen
+	int status = connect(client_fd, server_addr->ai_addr, server_addr->ai_addrlen);
+	// std::cout << "Connect - status: " << status << std::endl;
+	
 	// TODO: Retreive user input
+	// Source: https://stackoverflow.com/questions/37973012/how-to-read-a-string-in-the-form-of-char-array-using-cin
+	std::cin.getline(socket_read_buffer, BUFFER_SIZE, '\n');
+	
 	// TODO: Send() the user input to the server
+	status = send(client_fd, socket_read_buffer, sizeof(socket_read_buffer), 0);
+	//std::cout << "Send - status: " << status << std::endl;
+	
 	// TODO: Recieve any messages from the server and print it here. Don't forget to make sure the string is null terminated!
+	status = recv(client_fd, socket_read_buffer, sizeof(socket_read_buffer), 0);
+	
+	// Null terminate - message should be 18 characters long
+	socket_read_buffer[18] = '\0';
+
+	// Print the acknowledgement message from server
+	std::cout << socket_read_buffer << std::endl;
+	// std::cout << "Receive - status: " << status << std::endl;
+	
 	// TODO: Close() the socket
+	status = close(client_fd);
+	// std::cout << "Close - status: " << status << std::endl;
 
 	return 0; 
 } 
